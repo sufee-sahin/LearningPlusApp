@@ -260,3 +260,5 @@ EXEC sp_addrolemember 'db_owner', 'HP\ssahi';
 USE learningPlus;
 CREATE USER [HP\ssahi] FOR LOGIN [HP\ssahi];
 EXEC sp_addrolemember 'db_owner', 'HP\ssahi';
+-- adding stored procefure for user registration and login--
+
