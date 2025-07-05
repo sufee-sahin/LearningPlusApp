@@ -37,7 +37,7 @@ insert into users values('severus','snape','severus.gamil.com',1234567894,'/','M
 insert into users values('minerva','mcgonagall','minerva.gamil.com',1234567895,'/','F','Minerva@123',2,'active','2024-12-31',GETDATE(),GETDATE())
 insert into users values('sirius','black','sirius.gamil.com',1234567896,'/','M','Sirius@123',2,'active','2024-12-31',GETDATE(),GETDATE())
 select * from users
-delete from users where firstName = 'albus' and roleId = 2
+
 create table courses(
 courseId varchar(20) primary key,
 courseName varchar(50) not null,
@@ -252,13 +252,73 @@ create table userNotifications(
     updated_at datetime default GETDATE(),
     constraint fk_notification_user foreign key(userId) references users(userId) on delete cascade
 )
-SELECT name FROM sys.server_principals WHERE type_desc = 'WINDOWS_LOGIN';
-USE learningPlus;
-CREATE USER [HP\ssahi] FOR LOGIN [HP\ssahi];
-EXEC sp_addrolemember 'db_owner', 'HP\ssahi';
 
-USE learningPlus;
-CREATE USER [HP\ssahi] FOR LOGIN [HP\ssahi];
-EXEC sp_addrolemember 'db_owner', 'HP\ssahi';
+
+select * from users
+go
 -- adding stored procefure for user registration and login--
+CREATE PROCEDURE [dbo].[usp_userRegistration]
+(
+    @firstName     VARCHAR(20),
+    @lastName      VARCHAR(20),
+    @email         VARCHAR(50),
+    @mobileNumber  NUMERIC(10),
+    @gender        CHAR(1),   
+    @password      VARCHAR(20),
+    @userID        INT OUT,     -- Output parameter for user ID
+    @roleId        INT OUT      -- Output parameter for role ID
+)
+AS
+BEGIN
+    DECLARE @returnValue INT
+    SET @userID = 0
+    SET @roleId = 3 -- Default role is student (3)
+
+    BEGIN TRY
+        -- Input validation
+        IF (
+            @firstName IS NULL OR
+            @lastName IS NULL OR
+            @email IS NULL OR
+            @mobileNumber IS NULL OR
+            @gender IS NULL OR
+            @password IS NULL
+        )
+        BEGIN
+            SET @returnValue = -1 -- Invalid input
+            RETURN @returnValue
+        END
+
+        -- Check if email already exists
+        IF EXISTS (SELECT 1 FROM users WHERE email = @email)
+        BEGIN
+            SET @returnValue = -2 -- Email already exists
+            RETURN @returnValue
+        END
+
+        -- Check if mobile number already exists
+        IF EXISTS (SELECT 1 FROM users WHERE mobileNumber = @mobileNumber)
+        BEGIN
+            SET @returnValue = -3 -- Mobile number already exists
+            RETURN @returnValue
+        END
+
+        -- Insert user into table, including roleId
+        INSERT INTO users (firstName, lastName, email, mobileNumber, gender, password, roleId)
+        VALUES (@firstName, @lastName, @email, @mobileNumber, @gender, @password, @roleId)
+
+        -- Get newly inserted user ID
+        SET @userID = SCOPE_IDENTITY()
+        SET @returnValue = 1 -- Success
+    END TRY
+    BEGIN CATCH
+        SET @userID = 0
+        SET @roleId = 0
+        SET @returnValue = -99 -- General error
+    END CATCH
+
+    RETURN @returnValue
+END
+GO
+
 
