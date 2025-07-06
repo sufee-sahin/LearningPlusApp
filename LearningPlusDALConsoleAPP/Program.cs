@@ -1,10 +1,32 @@
-﻿namespace LearningPlusDALConsoleAPP
+﻿using LearninPlusDAL;
+using LearninPlusDAL.Models;
+
+namespace LearningPlusDALConsoleAPP
 {
-    internal class Program
+    public class Program
     {
+        static LearningPlusContext context;
+        static LearningPlusRepository repository;
+
+        static Program()
+        {
+            context = new LearningPlusContext();
+            repository = new LearningPlusRepository(context);
+        }
+
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello, World!");
+            int userId = 0;
+            int roleId = 0;
+            int result = repository.AddUser("Ruhi","Raj","Ruhi12345@gmail.com",9988776653L, 'F', "Jon12345", out userId, out roleId);
+            if (result > 0)
+            {
+                Console.WriteLine("User registered successfully!");
+            }
+            else
+            {
+                Console.WriteLine("User registration failed!");
+            }
         }
     }
 }
