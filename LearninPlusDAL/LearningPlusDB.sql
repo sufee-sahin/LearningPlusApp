@@ -320,5 +320,52 @@ BEGIN
     RETURN @returnValue
 END
 GO
+--stored prpcedure f user login--
+CREATE PROCEDURE usp_userLogin
+(
+    @email VARCHAR(50),
+    @mobileNumber NUMERIC(10),
+    @password VARCHAR(20),
+    @userId INT OUT,
+    @roleId INT OUT
+)
+AS
+BEGIN
+    DECLARE @returnValue INT
+    SET @userId = 0
+    SET @roleId = 0
 
+    BEGIN TRY
+        -- Check if both email and phone are null
+        IF (@email IS NULL AND @mobileNumber IS NULL)
+        BEGIN
+            SET @returnValue = -1 -- Invalid input: both missing
+            RETURN @returnValue
+        END
 
+        -- Fetch user by email OR mobile with password
+        SELECT @userId = userId, @roleId = roleId
+        FROM users
+        WHERE 
+            (@email IS NOT NULL AND email = @email OR
+             @mobileNumber IS NOT NULL AND mobileNumber = @mobileNumber)
+            AND password = @password
+
+        -- Check if user was found
+        IF (@userId IS NULL OR @userId = 0)
+        BEGIN
+            SET @returnValue = -2 -- User not found or invalid credentials
+            RETURN @returnValue
+        END
+
+        SET @returnValue = 1 -- Success
+    END TRY
+    BEGIN CATCH
+        SET @userId = 0
+        SET @roleId = 0
+        SET @returnValue = -99 -- General error
+    END CATCH
+
+    RETURN @returnValue
+END
+GO
