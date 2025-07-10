@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using LearninPlusDAL;
 using LearninPlusDAL.Models;
 
@@ -11,18 +11,24 @@ namespace LearningPlusServices
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            // ✅ Add CORS here (before builder.Build())
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAngularApp",
+                    policy => policy.WithOrigins("http://localhost:4200")
+                                    .AllowAnyHeader()
+                                    .AllowAnyMethod());
+            });
 
             builder.Services.AddTransient<LearningPlusContext>();
             builder.Services.AddTransient<LearningPlusRepository>(
                 c => new LearningPlusRepository(c.GetRequiredService<LearningPlusContext>()));
 
             var app = builder.Build();
-
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -33,8 +39,10 @@ namespace LearningPlusServices
 
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
+            // ✅ Use CORS here (after app is built)
+            app.UseCors("AllowAngularApp");
 
+            app.UseAuthorization();
 
             app.MapControllers();
 
